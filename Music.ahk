@@ -1,11 +1,20 @@
-;Controll YouTube like a boss
+;Controll YouTube and YouTube Music like a boss
 ;Author: Luca (Diamantenmine)
+
+;Play,pause 1
+;Volumen+ 6
+;Volumen- 4
+;Skip x
+;Go back -
+;+10S 2
+;-10S 3
+;like +
+;dislike /
 
 #SingleInstance, Force
 #NoEnv
 SetTitleMatchMode, 2
 SendMode Input
-SetWorkingDir %A_ScriptDir%
 youTubeTabSelect := 0
 lastTabName := ""
 lastTabNumber := ""
@@ -26,32 +35,46 @@ NumpadPgUp::
 youTubeTabSelect := 2
 return
 
+;Pause, play
 Numpad1::
 NumpadEnd::
-sendKeyToYt("k")
+sendKey("k", "{Space}")
 return
-Numpad2::
-NumpadDown::
-sendKeyToYt("j")
-return
-Numpad3::
-NumpadPgDn::
-sendKeyToYt("l")
-return
+
+;Volumen+
 Numpad4::
 NumpadLeft::
-sendKeyToYt("{Up}")
+sendKey("{Up}", "+0")
 return
+
+;Volumen-
 Numpad6::
 NumpadRight::
-sendKeyToYt("{Down}")
+sendKey("{Down}", "-")
 return
-NumpadDiv::
-sendKeyToYt("+p")
-return
+
+;skip
 NumpadMult::
-sendKeyToYt("+n")
+sendKey("+n", "+n")
 return
+
+;go back
+NumpadSub::
+sendKey("+p", "+p")
+return
+
+;+10s
+Numpad2::
+NumpadDown::
+sendKey("l", "l")
+return
+
+;-10s
+Numpad3::
+NumpadPgDn::
+sendKey("j", "h")
+return
+
 
 ;With ctrl
 ^Numpad1::
@@ -91,7 +114,23 @@ youTubeTabSelect := 8
 return
 
 ;--------Functions--------;
-sendKeyToYt(key)
+sendKey(keyYT,keyYTMusic)
+{
+	if findYouTubeTab() {
+		IfWinExist, YouTube Music
+		{
+			sendKeyYouTube(keyYTMusic)
+		} else {
+			sendKeyYouTube(keyYT)	
+		}
+	}
+}
+
+sendKeyYouTube(key){
+	ControlSend, Chrome_RenderWidgetHostHWND1, %key%, Google Chrome
+}
+
+findYouTubeTab()
 {
 	i := 0
 	id := 0
@@ -105,8 +144,7 @@ sendKeyToYt(key)
 
 	WinGetTitle, tmpTabName, Google Chrome
 	if (youTubeTabSelect == lastTabNumber and tmpTabName == lastTabName) {
-		ControlSend, Chrome_RenderWidgetHostHWND1, %key%, Google Chrome
-		return
+		return true
 	}
 
 
@@ -119,19 +157,17 @@ sendKeyToYt(key)
 		IfWinExist, YouTube
 		{	
 			if (youTubeTabCounter == youTubeTabSelect) {
-				ControlSend, Chrome_RenderWidgetHostHWND1, %key%, Google Chrome
-
 				WinGetTitle, lastTabName, Google Chrome
 				lastTabNumber := youTubeTabSelect
 
-				return
+				return true
 			}
 			youTubeTabCounter += 1
 		}
 		
 		i += 1
 		if (i > 20){
-			return
+			return false
 		}
 	
 		ControlSend, Chrome_RenderWidgetHostHWND1, {Control Down}{Tab}{Control Up}, Google Chrome
